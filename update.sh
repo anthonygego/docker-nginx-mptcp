@@ -34,6 +34,11 @@ declare -A debian=(
     [stable]='bullseye'
 )
 
+declare -A ubuntu=(
+    [mainline]='jammy'
+    [stable]='jammy'
+)
+
 declare -A alpine=(
     [mainline]='3.17'
     [stable]='3.17'
@@ -70,7 +75,7 @@ get_packages() {
         r="r"
         sep="."
         ;;
-    debian*:*)
+    debian*:* | ubuntu*:*)
         sep="+"
         ;;
     esac
@@ -119,6 +124,7 @@ get_packagever() {
     local suffix=
 
     [ "${distro}" = "debian" ] && suffix="~${debianver}"
+    [ "${distro}" = "ubuntu" ] && suffix="~${ubuntuver}"
 
     echo ${pkg[$branch]}${suffix}
 }
@@ -135,7 +141,7 @@ get_buildtarget() {
         alpine)
             echo module-geoip module-image-filter module-njs module-xslt
             ;;
-        debian)
+        debian | ubuntu)
             echo "\$nginxPackages"
             ;;
         debian-perl)
@@ -157,7 +163,8 @@ __EOF__
 for branch in "${branches[@]}"; do
     for variant in \
         alpine{,-perl,-slim} \
-        debian{,-perl}; do
+        debian{,-perl} \
+        ubuntu; do
         echo "$branch: $variant dockerfiles"
         dir="$branch/$variant"
         variant="$(basename "$variant")"
@@ -171,6 +178,7 @@ for branch in "${branches[@]}"; do
         } >"$dir/Dockerfile"
 
         debianver="${debian[$branch]}"
+        ubuntuver="${ubuntu[$branch]}"
         alpinever="${alpine[$branch]}"
         nginxver="${nginx[$branch]}"
         njsver="${njs[${branch}]}"
@@ -185,6 +193,7 @@ for branch in "${branches[@]}"; do
         sed -i.bak \
             -e 's,%%ALPINE_VERSION%%,'"$alpinever"',' \
             -e 's,%%DEBIAN_VERSION%%,'"$debianver"',' \
+            -e 's,%%UBUNTU_VERSION%%,'"$ubuntuver"',' \
             -e 's,%%NGINX_VERSION%%,'"$nginxver"',' \
             -e 's,%%NJS_VERSION%%,'"$njsver"',' \
             -e 's,%%PKG_RELEASE%%,'"$packagever"',' \
@@ -199,7 +208,8 @@ for branch in "${branches[@]}"; do
 
     for variant in \
         alpine-slim \
-        debian; do \
+        debian \
+        ubuntu; do \
         echo "$branch: $variant entrypoint scripts"
         dir="$branch/$variant"
         cp -a entrypoint/*.sh "$dir/"
