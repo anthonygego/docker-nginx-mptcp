@@ -107,6 +107,7 @@ get_packages() {
 get_packagerepo() {
     local distro="${1%-perl}"
     distro="${distro%-slim}"
+    distro="${distro%-mptcp}"
     shift
     local branch="$1"
     shift
@@ -118,6 +119,7 @@ get_packagerepo() {
 
 get_packagever() {
     local distro="${1%-perl}"
+    distro="${distro%-mptcp}"
     shift
     local branch="$1"
     shift
@@ -141,7 +143,7 @@ get_buildtarget() {
         alpine)
             echo module-geoip module-image-filter module-njs module-xslt
             ;;
-        debian | ubuntu)
+        debian | ubuntu*)
             echo "\$nginxPackages"
             ;;
         debian-perl)
@@ -164,7 +166,7 @@ for branch in "${branches[@]}"; do
     for variant in \
         alpine{,-perl,-slim} \
         debian{,-perl} \
-        ubuntu; do
+        ubuntu{,-mptcp}; do
         echo "$branch: $variant dockerfiles"
         dir="$branch/$variant"
         variant="$(basename "$variant")"

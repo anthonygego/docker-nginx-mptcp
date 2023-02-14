@@ -1,0 +1,8 @@
+FROM nginx:%%NGINX_VERSION%%
+
+RUN set -x \
+    && apt-get update \
+    && apt-get install --no-install-recommends --no-install-suggests -y mptcpize \
+    && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
+
+CMD ["mptcpize", "run", "nginx", "-g", "daemon off;"]
